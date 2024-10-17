@@ -1,0 +1,47 @@
+import { TransgateConnect } from "transgate-connect-library";
+import axios from "axios"; // You'll need to install axios: npm install axios
+
+const verify = async (setLoading, username) => {
+  try {
+    setLoading(true);
+    // The appid of the project created in dev center
+    const appid = "8fb9d43c-2f24-424e-a98d-7ba34a5532f5";
+
+    // Create the connector instance
+    const connector = new TransgateConnect(appid);
+
+    // Check if the TransGate extension is installed
+    const isAvailable = await connector.isTransgateAvailable();
+
+    if (isAvailable) {
+      // The schema id of the project
+      const schemaId = "516a720e-29a4-4307-ae7b-5aec286e446e";
+
+      // Launch the process of verification
+      const res = await connector.launch(schemaId);
+
+      if (res) {
+        // Call your backend to perform additional verification or logging
+        const backendResponse = await axios.post(
+          "http://localhost:5000/api/verify",
+          { username }
+        );
+
+        if (backendResponse.data.verified) {
+          return "Verification successful";
+        } else {
+          return "Verification failed";
+        }
+      } else {
+        return "Verification failed";
+      }
+    } else {
+      return "Please install TransGate";
+    }
+  } catch (error) {
+    console.error("Verification error", error);
+    throw error;
+  }
+};
+
+export default verify;
